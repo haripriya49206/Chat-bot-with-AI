@@ -1,0 +1,157 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Traditional AI Chatbot</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 750px;
+      margin: 40px auto;
+      padding: 20px;
+      background: #f3f5fa;
+    }
+    h1 { color: #253a70; }
+    #chat {
+      background: white;
+      border: 1px solid #ddd;
+      padding: 20px;
+      height: 350px;
+      overflow-y: auto;
+      border-radius: 10px;
+      margin-bottom: 15px;
+    }
+    .message { margin: 12px 0; line-height: 1.5; }
+    .user { color: #2157ac; }
+    .bot { color: #26734d; }
+    input {
+      padding: 12px;
+      width: 70%;
+      border: 1px solid #aaa;
+      border-radius: 6px;
+    }
+    button {
+      padding: 12px;
+      background: #253a70;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>Traditional Chatbot with AI Integration</h1>
+  <p>Rule-based chatbot prototype</p>
+
+  <div id="chat" aria-live="polite">
+    <div class="message bot">
+      <strong>Bot:</strong> Hello! Type "help" to see what I can do.
+    </div>
+  </div>
+
+  <input id="message" type="text"
+         placeholder="Enter your message..."
+         aria-label="Your message">
+  <button onclick="sendMessage()">Send</button>
+
+  <script>
+    function botResponse(message) {
+      const text = message.toLowerCase().trim();
+
+      if (!text) return "Please enter a message.";
+      if (/\b(hello|hi|hey)\b/.test(text))
+        return "Hello! How can I assist you today?";
+      if (text.includes("help"))
+        return "I can greet you, explain my capabilities, tell you about AI, and respond to thanks.";
+      if (text.includes("your name"))
+        return "I am a traditional chatbot prototype.";
+      if (text.includes("what is ai"))
+        return "AI means Artificial Intelligence.";
+      if (text.includes("thank"))
+        return "You're welcome!";
+      if (text.includes("bye"))
+        return "Goodbye! Have a wonderful day.";
+
+      return "I do not understand that question yet. Please type help.";
+    }
+
+    function addMessage(sender, message, className) {
+      const chat = document.getElementById("chat");
+      const line = document.createElement("div");
+      line.className = "message " + className;
+
+      const label = document.createElement("strong");
+      label.textContent = sender + ": ";
+      line.appendChild(label);
+      line.appendChild(document.createTextNode(message));
+
+      chat.appendChild(line);
+      chat.scrollTop = chat.scrollHeight;
+    }
+
+   
+const API_URL = "https://unsubtly-singular-dispute.ngrok-free.dev";
+
+async function sendMessage() {
+  const input = document.getElementById("message");
+  const message = input.value.trim();
+
+  if (!message) {
+    addMessage("Bot", "Please enter a message.", "bot");
+    return;
+  }
+
+  addMessage("You", message, "user");
+  addMessage("Bot", botResponse(message), "bot");
+
+  input.value = "";
+  input.focus();
+
+  try {
+    const response = await fetch(API_URL + "/analyze", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "ngrok-skip-browser-warning": "true"
+      },
+      body: JSON.stringify({ message })
+    });
+
+    if (!response.ok) {
+      throw new Error("API returned " + response.status);
+    }
+
+    const result = await response.json();
+
+    const confidence = (
+      result.confidence * 100
+    ).toFixed(2);
+
+    addMessage(
+      "AI",
+      "Sentiment: " + result.sentiment +
+      " | Confidence: " + confidence + "%",
+      "bot"
+    );
+
+  } catch (error) {
+    addMessage(
+      "AI",
+      "Sentiment analysis is temporarily unavailable.",
+      "bot"
+    );
+    console.error("AI connection error:", error);
+  }
+}
+
+
+    document.getElementById("message")
+      .addEventListener("keydown", function(event) {
+        if (event.key === "Enter") sendMessage();
+      });
+  </script>
+</body>
+</html>
